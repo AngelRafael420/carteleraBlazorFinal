@@ -1,0 +1,179 @@
+﻿@page "/"
+@using cartelera.Models
+@inject IJSRuntime JSRuntime
+
+<h1>Cartelera de películas</h1>
+
+<div class="clock">
+    @DateTime.Now.ToString("dddd, dd MMMM yyyy HH:mm:ss")
+</div>
+
+
+
+<button @onclick="ToggleDarkMode">Toggle Dark Mode</button>
+
+@foreach (var movie in Movies)
+{
+    <div class="movie-container">
+        <img src="@movie.PosterUrl" alt="@movie.Title" class="movie-poster" /> <!-- Mostrar la carátula -->
+        <h3 class="movie-title">@movie.Title</h3>
+        <p class="movie-description">@movie.Description</p>
+        <button class="btn-details" @onclick="() => ShowDetails(movie)">Ver detalles</button>
+    </div>
+}
+
+@if (selectedMovie != null)
+{
+    <div>
+        <h2>Detalles de la película</h2>
+        <img src="@selectedMovie.PosterUrl" alt="@selectedMovie.Title" class="selected-movie-poster" /> <!-- Mostrar la carátula -->
+        <p><strong>Título:</strong> @selectedMovie.Title</p>
+        <p><strong>Descripción:</strong> @selectedMovie.Description</p>
+        <p><strong>Año:</strong> @selectedMovie.Year</p>
+        <p><strong>Director:</strong> @selectedMovie.Director</p>
+    </div>
+}
+
+<style>
+
+     /* Estilos para el reloj */
+    .clock {
+        font-size: 18px;
+        text-align: center;
+        margin-bottom: 20px;
+    }
+
+    /* Estilos para el contenedor de cada película */
+    .movie-container {
+        border: 1px solid #ccc;
+        padding: 20px;
+        margin-bottom: 20px;
+        background-color: #f9f9f9;
+        border-radius: 5px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        display: flex; /* Alinear elementos horizontalmente */
+        align-items: center; /* Centrar verticalmente los elementos */
+    }
+
+    /* Estilos para el carátula de la película */
+    .movie-poster {
+        max-width: 100px; /* Ajustar el tamaño máximo de la carátula */
+        margin-right: 20px; /* Espacio entre la carátula y el texto */
+    }
+
+    /* Estilos para el título de la película */
+    .movie-title {
+        font-size: 20px;
+        margin-bottom: 10px;
+        color: #333;
+    }
+
+    /* Estilos para la descripción de la película */
+    .movie-description {
+        color: #666;
+        margin-bottom: 10px;
+    }
+
+    /* Estilos para el botón de ver detalles */
+    .btn-details {
+        background-color: #007bff;
+        color: #fff;
+        border: none;
+        padding: 8px 16px;
+        cursor: pointer;
+        border-radius: 5px;
+    }
+
+        .btn-details:hover {
+            background-color: #0056b3;
+        }
+
+    /* Estilos para el carátula de la película seleccionada */
+    .selected-movie-poster {
+        max-width: 200px; /* Ajustar el tamaño máximo de la carátula */
+        margin-bottom: 20px; /* Espacio después de la carátula */
+    }
+
+    /* Estilos para el modo claro */
+    :root {
+        --background-color: #f9f9f9;
+        --text-color: #333;
+    }
+
+    /* Estilos para el modo oscuro */
+    .dark-mode {
+        --background-color: #333;
+        --text-color: #fff;
+    }
+
+    body {
+        background-color: var(--background-color);
+        color: var(--text-color);
+    }
+
+    /* Estilos para el botón de alternancia del modo oscuro */
+    button {
+        background-color: #007bff;
+        color: #fff;
+        border: none;
+        padding: 8px 16px;
+        cursor: pointer;
+        border-radius: 5px;
+    }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+</style>
+
+
+
+@code {
+
+    string currentDateTime;
+
+    protected override void OnInitialized()
+    {
+        UpdateClock();
+    }
+
+    async Task UpdateClock()
+    {
+        while (true)
+        {
+            currentDateTime = DateTime.Now.ToString("dddd, dd MMMM yyyy HH:mm:ss");
+            StateHasChanged(); // Notificar a Blazor de que el estado ha cambiado para actualizar la interfaz de usuario
+            await Task.Delay(1000); // Esperar un segundo antes de actualizar de nuevo
+        }
+    }
+    List<Movie> Movies { get; set; } = new List<Movie>
+    {
+        new Movie("La Soga", "La historia de un hombre en la búsqueda de redención y justicia.", 2009, "Josh Crook", "/imagenes/soga1.webp"),
+        new Movie("Código Paz", "Dos hombres, un policía y un exconvicto, unen fuerzas para detener a un poderoso narcotraficante.", 2014, "Pedro Urrutia", "/imagenes/codigopaz.jpg"),
+        new Movie("Colao", "Un hombre intenta convencer a una mujer de que se case con él solo para poder regresar a su país de origen, República Dominicana.", 2018, "Frank Perozo", "/imagenes/colao.jpg"),
+        new Movie("Quién manda", "Un policía debe enfrentarse a un poderoso narcotraficante para salvar a su familia.", 2013, "José María Cabral", "/imagenes/quienmanda.jpg"),
+        new Movie("El Closet", "Una comedia sobre un hombre que intenta ocultar su orientación sexual alquilando un hijo para engañar a su familia.", 2018, "Fernando Báez", "/imagenes/closet.jpg"),
+        // Agrega más películas dominicanas aquí según sea necesario
+    };
+
+    Movie selectedMovie = null;
+    bool isDarkMode = false;
+
+    void ShowDetails(Movie movie)
+    {
+        selectedMovie = movie;
+    }
+
+    async Task ToggleDarkMode()
+    {
+        isDarkMode = !isDarkMode;
+        if (isDarkMode)
+        {
+            await JSRuntime.InvokeVoidAsync("eval", "document.body.classList.add('dark-mode');");
+        }
+        else
+        {
+            await JSRuntime.InvokeVoidAsync("eval", "document.body.classList.remove('dark-mode');");
+        }
+    }
+}
